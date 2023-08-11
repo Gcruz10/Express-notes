@@ -20,7 +20,7 @@ app.get('/', (req, res) => {
     fs.readFile(notesFilePath, 'utf8', (err, data) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: 'Failed to read notes data.' });
+        return res.status(500).json({ error: 'Failed to read notes data. Please try again later.' });
       }
   
       const notes = JSON.parse(data);
@@ -38,24 +38,28 @@ app.get('/', (req, res) => {
     fs.readFile(notesFilePath, 'utf8', (err, data) => {
       if (err) {
         console.error(err);
-        return res.status(500).json({ error: 'Failed to read notes data.' });
+        return res.status(500).json({ error: 'Failed to read notes data. Please try again later.' });
       }
   
       const notes = JSON.parse(data);
-      const newNote = { title, text, id: Date.now() };
-      notes.push(newNote);
-  
-      fs.writeFile(notesFilePath, JSON.stringify(notes), (err) => {
-        if (err) {
-          console.error(err);
-          return res.status(500).json({ error: 'Failed to save the note.' });
-        }
-  
-        res.json(newNote);
-      });
+    const newNote = {
+      title,
+      text,
+      id: Date.now() + Math.floor(Math.random() * 1000), 
+    };
+    notes.push(newNote);
+
+    fs.writeFile(notesFilePath, JSON.stringify(notes), (err) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json({ error: 'Failed to save the note. Please try again later.' });
+      }
+
+      res.json(newNote);
     });
   });
+});
 
- app.listen(PORT, () => {
-    console.log(`Server listening on http://localhost:${PORT}`);
-  });
+app.listen(PORT, () => {
+  console.log(`Server listening on http://localhost:${PORT}`);
+});
