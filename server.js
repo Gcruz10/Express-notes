@@ -5,60 +5,44 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static('public'));
 
-const notesFilePath = path.join(__dirname, 'db', 'notes.json');
+
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-  });
-
-  app.get('/api/notes', (req, res) => {
-    fs.readFile(notesFilePath, 'utf8', (err, data) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Failed to read notes data. Please try again later.' });
-      }
-  
-      const notes = JSON.parse(data);
-      res.json(notes);
-    });
-  });
-
-  app.post('/api/notes', (req, res) => {
-    const { title, text } = req.body;
-  
-    if (!title || !text) {
-      return res.status(400).json({ error: 'Title and text are required fields.' });
-    }
-  
-    fs.readFile(notesFilePath, 'utf8', (err, data) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Failed to read notes data. Please try again later.' });
-      }
-  
-      const notes = JSON.parse(data);
-    const newNote = {
-      title,
-      text,
-      id: Date.now() + Math.floor(Math.random() * 1000), 
-    };
-    notes.push(newNote);
-
-    fs.writeFile(notesFilePath, JSON.stringify(notes), (err) => {
-      if (err) {
-        console.error(err);
-        return res.status(500).json({ error: 'Failed to save the note. Please try again later.' });
-      }
-
-      res.json(newNote);
-    });
-  });
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+app.get('/notes', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'notes.html'));
+});
+
+app.get('/api/notes', (req, res) => {
+  res.sendFile(path.join(__dirname, '../db/db.json'));
+});
+
+app.post('/api/notes', (req, res) => {
+let db = fs.readFileSync(path.join(__dirname, '../db/db.json'));
+db = JSON.parse(db);
+let newNote = {
+  title: req.body.title,
+  text: req.body.text,
+  id: db.length + 1
+}
+db.push(newNote);
+fs.writeFileSync(path.join(__dirname, '../db/db.json'), JSON.stringify(db));
+res.json(db);
+});
+
+app.delete('/api/notes/:id', (req, res) => {
+  let db = fs.readFileSync(path.join(__dirname, '../db/db.json'));
+ let deleteNote = db.filter(note => note.id != req.params.id);
+  fs.writeFileSync(path.join(__dirname, '../db/db.json'), JSON.stringify(deleteNote));
+  res.json(deleteNote);
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
